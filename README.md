@@ -32,19 +32,9 @@ Make sure you have the following packages installed in R:
 - writexl
 - readxl
 ## Instructions
-Clone this repository to your local machine:
-bash
-Copy code
-git clone https://github.com/<your-username>/nfl-elo-analysis.git
-Open the data_cleaning.Rmd file in RStudio or any R environment.
-Run the R code to clean the data, generate visualizations, and save the cleaned dataset as cleaned_data.xlsx.
+- Clone this repository to your local machine:
+bash git clone [https://github.com/<your-username>/nfl-elo-analysis.git](https://github.com/keshabmcdaniel/ANA_515P_DATA_CLEANING_FINAL.git)
 
-Note: You can also edit the file to apply additional transformations or visualizations as needed.
+- Open the data_cleaning.Rmd file in RStudio or any R environment.
+- Run the R code to clean the data, generate visualizations, and save the cleaned dataset as cleaned_data.xlsx.
 
-
-"Uploaded original datasets for NFL Elo data analysis project."
-
-Contact Information
-For any questions or issues regarding this repository, please contact:
-
-Alissitz: alissitz@mcdaniel.edu
