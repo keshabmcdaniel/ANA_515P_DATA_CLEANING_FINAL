@@ -17,10 +17,10 @@ Use histograms, box plots, and scatter plots to explore and visualize important 
 - Saving the cleaned dataset for further use.
 
 # Files in This Repository
-- data_cleaning.Rmd: R Markdown file containing the R code for cleaning the dataset, performing data analysis, and visualizing key metrics.
-- cleaned_data.xlsx: The cleaned version of the NFL Elo dataset, generated after the cleaning process.
-- nfl_elo_latest.xlsx: The original dataset used for this analysis before any cleaning.
-- nfl_elo_original.xlsx: Another original dataset used in this analysis before cleaning.
+- clean_data.Rmd: R Markdown file containing the R code for cleaning the dataset, performing data analysis, and visualizing key metrics.
+- clean_data_ouput.html: Ouput html document of the data cleaning and visualization from the code. 
+- nfl_elo_latest_raw.xlsx: The original dataset used for this analysis before any cleaning.
+- nfl_elo_latest_cleaned.xlsx: The cleaned version of the NFL Elo dataset, generated after the cleaning process.
 - README.md: This file, explaining the project details, usage instructions, and dataset information.
 # How to Use This Repository
 ## Prerequisites
