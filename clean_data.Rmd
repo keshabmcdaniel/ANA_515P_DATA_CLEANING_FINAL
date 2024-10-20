@@ -1,0 +1,250 @@
+---
+title: "NFL Elo Data Analysis"
+author: "Keshab Bashyal"
+date: "2024-10-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# Set global chunk options
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Introduction
+This project analyzes NFL Elo data using R. The dataset contains information on various NFL games, including Elo ratings, team scores, and other metrics. The aim is to clean the data, handle missing values, and visualize key variables.
+
+# 2. Load Required Libraries
+```{r, include=TRUE}
+# Loading required libraries
+library(tidyverse)  # For data wrangling and visualization
+library(lubridate)  # For date manipulation
+library(ggplot2)    # For visualization
+library(writexl)    # For saving the cleaned data
+
+```
+
+# 3. Load the Dataset
+```{r, echo=FALSE, include=TRUE, warning=FALSE}
+
+# Load the dataset
+nfl_data <- readxl::read_excel("nfl_elo_latest.xlsx")
+
+# Display first few rows of the dataset
+head(nfl_data)
+
+```
+
+
+# 4. Data Cleaning
+
+## 4.1 Step 1: Convert the date Column to a Proper Date Format
+In the first step of the data cleaning process, we converted the date column from Excel serial format to a standard date format, ensuring consistency and easier manipulation in future analysis.
+
+
+```{r, echo=FALSE, include=TRUE, warning=FALSE}
+
+# Before conversion: print the first few rows of the date column
+print("Before cleaning - Date column:")
+head(nfl_data$date)
+
+# Convert the 'date' column from Excel serial format to Date format
+nfl_data_clean <- nfl_data %>%
+  mutate(date = as.Date(date, origin = "1899-12-30"))
+
+# After conversion: print the first few rows of the cleaned date column
+print("After cleaning - Date column:")
+head(nfl_data_clean$date)
+
+```
+
+# 4.2 Step 2: Fix Data Types in Columns
+To ensure proper analysis, we converted key columns (such as Elo ratings and quarterback Elo scores) to numeric types, allowing for mathematical operations and visualizations.
+
+
+```{r, echo=FALSE, include=TRUE, warning=FALSE}
+# Before conversion: Check the structure of the dataset
+print("Before cleaning - Data types:")
+str(nfl_data)
+
+# Convert Elo and QB Elo columns to numeric where applicable
+nfl_data_clean <- nfl_data_clean %>%
+  mutate(
+    elo1_pre = as.numeric(elo1_pre),
+    elo2_pre = as.numeric(elo2_pre),
+    elo1_post = as.numeric(elo1_post),
+    elo2_post = as.numeric(elo2_post),
+    qbelo1_pre = as.numeric(qbelo1_pre),
+    qbelo2_pre = as.numeric(qbelo2_pre),
+    qbelo1_post = as.numeric(qbelo1_post),
+    qbelo2_post = as.numeric(qbelo2_post),
+    score1 = as.numeric(score1),
+    score2 = as.numeric(score2)
+  )
+
+# After conversion: Check the structure of the dataset again
+print("After cleaning - Data types:")
+str(nfl_data_clean)
+```
+
+## 4.3 Step 3: Remove Unnecessary Columns (neutral, playoffs)
+We removed the columns neutral and playoffs as they were deemed unnecessary for this analysis.
+
+```{r, echo=FALSE, include=TRUE, warning=FALSE}
+
+# Remove the 'neutral' and 'playoff' columns
+nfl_data_clean <- nfl_data_clean %>% select(-neutral, -playoff)
+
+# Check column names after removal
+colnames(nfl_data_clean)
+
+```
+
+#4.4. Step4: Remove Rows with NA, Zero, or Empty Values
+To ensure the dataset was free of incomplete records, we removed any rows with NA values, zeros, or empty strings across all columns except for the date column.
+
+
+```{r, echo=FALSE, include=TRUE, warning=FALSE}
+
+nfl_data_clean <- nfl_data_clean %>%
+  filter(
+    !is.na(date),  # Ensure the date column does not have NA
+    rowSums(across(-date, ~ !is.na(.) & . != "" & . != "NA" & . != 0)) == ncol(nfl_data_clean) - 1  # Apply to non-date columns
+  )
+
+# Print the number of rows remaining after cleaning
+print(paste("Rows remaining after cleaning:", nrow(nfl_data_clean)))
+```
+
+#
+
+## 4.5 Step 5: Impute Missing Values in Specific Columns
+We handled inconsistent data by imputing values where necessary. For example, we replaced the season value 20 with 2020 and substituted the value 1 in the elo1_pre column with the median value for consistency.
+
+
+```{r, echo=FALSE, include=TRUE, warning=FALSE}
+
+# Impute 'season' with the correct value (replace 20 with 2020)
+nfl_data_clean <- nfl_data_clean %>%
+  mutate(season = ifelse(season == 20, 2020, season))
+
+# Impute 'elo1_pre' where the value is 1 with the median value of 'elo1_pre'
+median_elo1_pre <- median(nfl_data_clean$elo1_pre, na.rm = TRUE)
+
+nfl_data_clean <- nfl_data_clean %>%
+  mutate(elo1_pre = ifelse(elo1_pre == 1, median_elo1_pre, elo1_pre))
+
+# Check the updated columns
+print("Updated 'season' and 'elo1_pre' columns after imputing missing values:")
+nfl_data_clean %>% select(season, elo1_pre) %>% head()
+```
+
+
+# 4.6 Step 6 Save Cleaned Data
+After completing the data cleaning steps, we saved the cleaned dataset to an Excel file for further use.
+
+ 
+```{r save-cleaned-data, echo=TRUE, include=TRUE, warning=FALSE}
+# Save the cleaned data to an Excel file
+writexl::write_xlsx(nfl_data_clean, "cleaned_data.xlsx")
+```
+
+# 5 Summary of the Data Cleaning 
+
+In this project, we conducted several data cleaning steps to prepare the NFL Elo dataset for further analysis. These steps included:
+
+- Date Conversion:
+  - The date column was converted to a proper Date format.
+  
+- Fixing Data Types:
+  - Key numeric columns (e.g., Elo ratings and quarterback ratings) were converted to numeric types.
+
+- Removing Unnecessary Columns:
+  - We removed irrelevant columns such as neutral and playoffs.
+
+- Handling Missing and Zero Values:
+  - Rows with missing values (NA), zeros, or empty values were removed.
+  
+- Handling Inconsistent Data:
+  - We corrected inconsistent values in the season and elo1_pre columns.
+
+- Rows Removed
+  - A total of 19 rows containing invalid or incomplete data were removed during the cleaning process
+  
+# Visualization
+## 6.1 Histogram for Numeric Variables
+We visualize the distribution of each numeric variable using histograms, presented in a 1x2 layout.
+
+
+```{r plot-histogram, echo=TRUE, include=TRUE, warning=FALSE}
+# Select numeric columns
+numeric_cols <- nfl_data_clean %>% select(where(is.numeric)) %>% colnames()
+
+# Loop through the numeric columns and create histograms in a 1x2 layout
+for (i in seq(1, length(numeric_cols), by = 2)) {
+  col1 <- numeric_cols[i]
+  col2 <- ifelse(i+1 <= length(numeric_cols), numeric_cols[i+1], NA)  # Get the second column for the layout
+  
+  # 1x2 layout for histograms
+  par(mfrow = c(1, 2))
+  
+  # Plot the first histogram
+  hist(nfl_data_clean[[col1]], main = paste("Histogram of", col1), 
+       xlab = col1, col = "steelblue", border = "black")
+  
+  # Plot the second histogram if it exists
+  if (!is.na(col2)) {
+    hist(nfl_data_clean[[col2]], main = paste("Histogram of", col2), 
+         xlab = col2, col = "orange", border = "black")
+  }
+  
+  # Reset plotting layout for the next iteration
+  par(mfrow = c(1, 1))
+}
+
+```
+## 6.2 Box Plot for Numeric Variables
+We use box plots to visualize the spread and outliers for each numeric variable, also arranged in a 1x2 layout.
+
+
+```{r save-boxplot, echo=TRUE, include=TRUE, warning=FALSE}
+# Loop through the numeric columns and create box plots in a 1x2 layout
+for (i in seq(1, length(numeric_cols), by = 2)) {
+  col1 <- numeric_cols[i]
+  col2 <- ifelse(i+1 <= length(numeric_cols), numeric_cols[i+1], NA)  # Get the second column for the layout
+  
+  # 1x2 layout for box plots
+  par(mfrow = c(1, 2))
+  
+  # Plot the first box plot
+  boxplot(nfl_data_clean[[col1]], main = paste("Box Plot of", col1), 
+          ylab = col1, col = "steelblue", border = "black")
+  
+  # Plot the second box plot if it exists
+  if (!is.na(col2)) {
+    boxplot(nfl_data_clean[[col2]], main = paste("Box Plot of", col2), 
+            ylab = col2, col = "orange", border = "black")
+  }
+  
+  # Reset plotting layout for the next iteration
+  par(mfrow = c(1, 1))
+}
+```
+
+## 6.3 Scatter Plot
+
+
+
+```{r scatter-plot, echo=TRUE, include=TRUE, warning=FALSE}
+# Scatter plot to visualize the relationship between elo1_pre and elo2_pre
+ggplot(nfl_data_clean, aes(x = elo1_pre, y = elo2_pre)) +
+  geom_point(color = "darkgreen", alpha = 0.7) +
+  labs(title = "Scatter Plot of Elo1 Pre vs Elo2 Pre", x = "Elo1 Pre Rating", y = "Elo2 Pre Rating") +
+  theme_minimal()
+
+# Scatter plot for team scores
+ggplot(nfl_data_clean, aes(x = score1, y = score2)) +
+  geom_point(color = "purple", alpha = 0.7) +
+  labs(title = "Scatter Plot of Score1 vs Score2", x = "Team 1 Score", y = "Team 2 Score") +
+  theme_minimal()
+```
+
